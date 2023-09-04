@@ -13,7 +13,7 @@ struct studentData
 	int sequenceNumber;
 
 	char name[FIO_LENGTH];
-	char surname[FIO_LENGTH] = {0};
+	char surname[FIO_LENGTH];
 	char patronymic[FIO_LENGTH];
 
 	int bookNumber;
@@ -57,7 +57,7 @@ int ReadTxt(const char fileName[], studentData studentList[], int &studentCount)
 	return 0;
 }
 
-int PrintTxt(studentData studentList[], int& studentCount)
+int PrintTable(studentData studentList[], int& studentCount)
 {
 	char head[] = "ID | FIO                                             | Book ID | A | B | C | D | E |";
 	int headLen = strlen(head);
@@ -106,17 +106,173 @@ int PrintTxt(studentData studentList[], int& studentCount)
 	for (int i = 0; i < headLen; i++)
 		printf_s("-");
 
+	printf_s("\n");
+
 	return 0;
+}
+
+void swap(studentData studentList[], int i, int j)
+{
+	studentData temp = studentList[i];
+	studentList[i] = studentList[j];
+	studentList[j] = temp;
+}
+
+void SortSurname(studentData studentList[], int studentCount) 
+{
+	bool swapped;
+	for (int i = 0; i < studentCount - 1; i++) 
+	{
+		swapped = false;
+		for (int j = 0; j < studentCount - i - 1; j++) 
+		{
+			if (studentList[j].surname[0] > studentList[j + 1].surname[0]) 
+			{
+				swap(studentList, j, j + 1);
+				swapped = true;
+			}
+		}
+		if (swapped == false)
+			break;
+	}
+}
+
+void SortSubject(studentData studentList[], int studentCount)
+{
+	int choice = 0;
+
+	printf_s("Sort by: \n1 - Subject A \n2 - Subject B \n3 - Subject C \n4 - Subject D \n5 - Subject E \n0 - Return \n");
+	while (true)
+	{
+		printf_s("Enter your choice: ");
+		scanf_s("%d", &choice);
+
+		if (choice == 0)
+			return;
+
+		else if (choice > 0 && choice <= 5)
+		{
+			bool swapped;
+
+			for (int i = 0; i < studentCount - 1; i++)
+			{
+				swapped = false;
+
+				for (int j = 0; j < studentCount - i - 1; j++)
+				{
+					if (studentList[j].markList[choice - 1] < studentList[j + 1].markList[choice - 1])
+					{
+						swap(studentList, j, j + 1);
+						swapped = true;
+					}
+				}
+
+				if (swapped == false)
+					break;
+			}
+			
+			return;
+		}
+
+		else
+			printf_s("Invalid value!Try again.\n");
+	}
+}
+
+void FindSurname(studentData studentList[], int studentCount)
+{
+	printf_s("Enter surname:");
+	char buffer[FIO_LENGTH];
+	studentData dopStudentList[STUDENT_COUNT / 5];
+	int dopStudentCount = 0;
+
+	scanf("%s", buffer);
+
+	for (int i = 0; i < studentCount; i++)
+	{
+		int surnameSearchLength = strlen(buffer);
+		int surnameMasLength = strlen(studentList[i].surname);
+		int j = 0;
+		bool flag = true;
+
+		while (j < surnameSearchLength && j < surnameMasLength)
+		{
+			if (buffer[j] != studentList[i].surname[j])
+			{
+				flag = false;
+				break;
+			}
+			j++;
+		}
+
+		if (flag)
+		{
+			dopStudentList[dopStudentCount] = studentList[i];
+			dopStudentCount++;
+
+		}
+	}
+
+	if (dopStudentCount > 0)
+	{
+		PrintTable(dopStudentList, dopStudentCount);
+
+		printf_s("Press any button to continue\n");
+
+		while (getchar() != '\n');
+		getchar();
+	}
+	else
+		printf_s("There is no such surname.\n");
 }
 
 int main()
 {
 	studentData studentList[STUDENT_COUNT];
-	int studentCount = - 1;
+	int studentCount = -1;
+	int choice = 0;
 
 	ReadTxt("Data.txt", studentList, studentCount);
 
-	PrintTxt(studentList, studentCount);
+	while (true)
+	{
+		system("cls");
+
+		PrintTable(studentList, studentCount);
+		
+		printf_s("Sort by:\n");
+		printf_s("1 - surname\n");
+		printf_s("2 - mark\n");
+		printf_s("3 - Find surname\n");
+		printf_s("0 - exit\n");
+		printf_s("Enter your choice: ");
+
+		scanf_s("%d", &choice);
+
+		switch (choice)
+		{
+		case 0:
+			return 0;
+
+		case 1:
+			SortSurname(studentList, studentCount);
+			break;
+		
+		case 2:
+			SortSurname(studentList, studentCount);
+			SortSubject(studentList, studentCount);
+			break;
+		
+		case 3:
+			FindSurname(studentList, studentCount);
+			break;
+
+		default:
+			printf_s("Invalid value! Try again.\n");
+
+		}
+	}
+
 
 	return 0;
 }
