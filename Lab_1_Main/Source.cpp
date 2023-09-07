@@ -21,18 +21,24 @@ struct studentData
 	int markList[SUBJECTS_COUNT];
 };
 
+void AddSpace(char array[])
+{
+	int tmp = strlen(array);
+	while (tmp < FIO_LENGTH)
+	{
+		array[tmp] = ' ';
+		tmp++;
+	}
+	array[FIO_LENGTH - 1] = 0;
+}
+
 int ReadTxt(const char fileName[], studentData studentList[], int &studentCount)
 {
-	int tmp = 0;
-
 	FILE* f = 0;
 
-
 	if (fopen_s(&f, fileName, "r") != 0)
-	{
-		printf_s("Error opening file!\n");
 		return -1;
-	}
+
 
 	while (feof(f) == 0)
 	{
@@ -41,8 +47,14 @@ int ReadTxt(const char fileName[], studentData studentList[], int &studentCount)
 		fscanf_s(f, "%d", &studentList[studentCount].sequenceNumber);
 
 		fscanf(f, "%s", studentList[studentCount].surname);
+		AddSpace(studentList[studentCount].surname);
+
 		fscanf(f, "%s", studentList[studentCount].name);
+		AddSpace(studentList[studentCount].name);
+
 		fscanf(f, "%s", studentList[studentCount].patronymic);
+		AddSpace(studentList[studentCount].patronymic);
+
 
 		fscanf_s(f, "%d", &studentList[studentCount].bookNumber);
 
@@ -57,13 +69,18 @@ int ReadTxt(const char fileName[], studentData studentList[], int &studentCount)
 	return 0;
 }
 
-int PrintTable(studentData studentList[], int& studentCount)
+int PrintTable(studentData studentList[], int& studentCount, bool flag, char buffer[])
 {
-	char head[] = "ID | FIO                                             | Book ID | A | B | C | D | E |";
-	int headLen = strlen(head);
+	char head[] = "ID | Surname        Name           Patronymic     | Book ID |";
+	int headLen = strlen(head) + 4 * SUBJECTS_COUNT;
 
-	printf_s("%s\n", head);
+	printf_s("%s", head);
+
+	for (int i = 0; i < SUBJECTS_COUNT; i++)
+		printf_s(" %c |", 'A' + i);
 	
+	printf_s("\n");
+
 	for(int i = 0; i < headLen; i++)
 		printf_s("-");
 
@@ -72,27 +89,36 @@ int PrintTable(studentData studentList[], int& studentCount)
 	for (int i = 0; i < studentCount; i++)
 	{
 		if(studentList[i].sequenceNumber < 10)
-			printf_s("0%d ", studentList[i].sequenceNumber);
+			printf_s("0%d | ", studentList[i].sequenceNumber);
 		else
-			printf_s("%d ", studentList[i].sequenceNumber);
+			printf_s("%d | ", studentList[i].sequenceNumber);
 
-		printf_s("| ");
+		if (flag)
+		{
+			char* tmp1 = strstr(studentList[i].surname, buffer);
+			int tmp = (tmp1 - studentList[i].surname) / sizeof(char);
+			int stringLen = strlen(buffer);
 
-		printf_s("%s ", studentList[i].surname);
+			for (int j = 0; j < tmp; j++)
+				printf_s("%c", studentList[i].surname[j]);
+
+			printf_s("\033[33m");
+			for (int j = tmp; j < stringLen + tmp; j++)
+				printf_s("%c", studentList[i].surname[j]);
+			printf("\033[0m");
+
+			for (int j = stringLen + tmp; j < FIO_LENGTH; j++)
+				printf_s("%c", studentList[i].surname[j]);
+
+			printf_s(" ");
+		}
+		else
+			printf_s("%s ", studentList[i].surname);
+		
 		printf_s("%s ", studentList[i].name);
 		printf_s("%s ", studentList[i].patronymic);
 
-		int stringLen = strlen(studentList[i].surname) + strlen(studentList[i].name) + strlen(studentList[i].patronymic);
-		while (stringLen++ < FIO_LENGTH * 3)
-		{
-			printf_s(" ");
-		}
-
-		printf_s("| ");
-
-		printf_s("%d    ", studentList[i].bookNumber);
-
-		printf_s("| ");
+		printf_s("|  %d   | ", studentList[i].bookNumber);
 
 		for (int j = 0; j < SUBJECTS_COUNT; j++)
 		{
@@ -118,13 +144,15 @@ void swap(studentData studentList[], int i, int j)
 	studentList[j] = temp;
 }
 
+//ПЕРЕДЕЛАТЬ
 void SortSurname(studentData studentList[], int studentCount) 
 {
 	bool swapped;
+
 	for (int i = 0; i < studentCount - 1; i++) 
 	{
 		swapped = false;
-		for (int j = 0; j < studentCount - i - 1; j++) 
+		for (int j = 0; j < studentCount - i - 1; j++)
 		{
 			if (studentList[j].surname[0] > studentList[j + 1].surname[0]) 
 			{
@@ -141,7 +169,13 @@ void SortSubject(studentData studentList[], int studentCount)
 {
 	int choice = 0;
 
-	printf_s("Sort by: \n1 - Subject A \n2 - Subject B \n3 - Subject C \n4 - Subject D \n5 - Subject E \n0 - Return \n");
+	printf_s("Sort by: \n0 - Return");
+
+	for (int i = 0; i < SUBJECTS_COUNT; i++)
+		printf_s("\n%d - Subject %c", i + 1, 'A' + i);
+
+	printf_s("\n");
+
 	while (true)
 	{
 		printf_s("Enter your choice: ");
@@ -150,9 +184,9 @@ void SortSubject(studentData studentList[], int studentCount)
 		if (choice == 0)
 			return;
 
-		else if (choice > 0 && choice <= 5)
+		else if (choice > 0 && choice <= SUBJECTS_COUNT)
 		{
-			bool swapped;
+			bool swapped = false;
 
 			for (int i = 0; i < studentCount - 1; i++)
 			{
@@ -179,51 +213,29 @@ void SortSubject(studentData studentList[], int studentCount)
 	}
 }
 
-void FindSurname(studentData studentList[], int studentCount)
+void FindSurname(studentData studentList[], int studentCount, char buffer[])
 {
-	printf_s("Enter surname:");
-	char buffer[FIO_LENGTH];
 	studentData dopStudentList[STUDENT_COUNT / 5];
 	int dopStudentCount = 0;
 
-	scanf("%s", buffer);
-
 	for (int i = 0; i < studentCount; i++)
-	{
-		int surnameSearchLength = strlen(buffer);
-		int surnameMasLength = strlen(studentList[i].surname);
-		int j = 0;
-		bool flag = true;
-
-		while (j < surnameSearchLength && j < surnameMasLength)
-		{
-			if (buffer[j] != studentList[i].surname[j])
-			{
-				flag = false;
-				break;
-			}
-			j++;
-		}
-
-		if (flag)
-		{
-			dopStudentList[dopStudentCount] = studentList[i];
-			dopStudentCount++;
-
-		}
-	}
-
+		if (strstr(studentList[i].surname, buffer))
+			dopStudentList[dopStudentCount++] = studentList[i];
+		
 	if (dopStudentCount > 0)
-	{
-		PrintTable(dopStudentList, dopStudentCount);
+		PrintTable(dopStudentList, dopStudentCount, 1, buffer);
 
-		printf_s("Press any button to continue\n");
-
-		while (getchar() != '\n');
-		getchar();
-	}
 	else
 		printf_s("There is no such surname.\n");
+	
+	system("pause");
+}
+
+void GetSurname(char buffer[])
+{
+	printf_s("Enter surname: ");
+
+	scanf("%s", buffer);
 }
 
 int main()
@@ -231,14 +243,19 @@ int main()
 	studentData studentList[STUDENT_COUNT];
 	int studentCount = -1;
 	int choice = 0;
+	char buffer[FIO_LENGTH] = { 0 };
 
-	ReadTxt("Data.txt", studentList, studentCount);
+	if (ReadTxt("Data.txt", studentList, studentCount) == -1)
+	{
+		printf_s("Error opening file!\n");
+		return -1;
+	}
 
 	while (true)
 	{
 		system("cls");
 
-		PrintTable(studentList, studentCount);
+		PrintTable(studentList, studentCount, 0, buffer);
 		
 		printf_s("Sort by:\n");
 		printf_s("1 - surname\n");
@@ -264,7 +281,8 @@ int main()
 			break;
 		
 		case 3:
-			FindSurname(studentList, studentCount);
+			GetSurname(buffer);
+			FindSurname(studentList, studentCount, buffer);
 			break;
 
 		default:
