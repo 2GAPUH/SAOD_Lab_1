@@ -144,7 +144,6 @@ void swap(studentData studentList[], int i, int j)
 	studentList[j] = temp;
 }
 
-//ПЕРЕДЕЛАТЬ
 void SortSurname(studentData studentList[], int studentCount) 
 {
 	bool swapped;
@@ -154,10 +153,16 @@ void SortSurname(studentData studentList[], int studentCount)
 		swapped = false;
 		for (int j = 0; j < studentCount - i - 1; j++)
 		{
-			if (studentList[j].surname[0] > studentList[j + 1].surname[0]) 
+			for (int k = 0; studentList[j].surname[k] != ' '; k++)
 			{
-				swap(studentList, j, j + 1);
-				swapped = true;
+				if (studentList[j].surname[k] > studentList[j + 1].surname[k])
+				{
+					swap(studentList, j, j + 1);
+					swapped = true;
+					break;
+				}
+				else if(studentList[j].surname[k] != studentList[j + 1].surname[k])
+					break;
 			}
 		}
 		if (swapped == false)
