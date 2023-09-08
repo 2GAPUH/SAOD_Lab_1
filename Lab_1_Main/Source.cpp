@@ -19,6 +19,8 @@ struct studentData
 	int bookNumber;
 
 	int markList[SUBJECTS_COUNT];
+
+	double averageMark = 0;
 };
 
 void AddSpace(char array[])
@@ -60,6 +62,12 @@ int ReadTxt(const char fileName[], studentData studentList[], int &studentCount)
 
 		for (int i = 0; i < SUBJECTS_COUNT; i++)
 			fscanf_s(f, "%d", &studentList[studentCount].markList[i]);
+
+		for (int i = 0; i < SUBJECTS_COUNT; i++)
+			studentList[studentCount].averageMark += studentList[studentCount].markList[i];
+
+		studentList[studentCount].averageMark = round(studentList[studentCount].averageMark * 1. / SUBJECTS_COUNT * 10) / 10;
+	
 	}
 
 	studentCount++;
@@ -72,13 +80,15 @@ int ReadTxt(const char fileName[], studentData studentList[], int &studentCount)
 int PrintTable(studentData studentList[], int& studentCount, bool flag, char buffer[])
 {
 	char head[] = "ID | Surname        Name           Patronymic     | Book ID |";
-	int headLen = strlen(head) + 4 * SUBJECTS_COUNT;
+	int headLen = strlen(head) + 4 * SUBJECTS_COUNT + 9;
 
 	printf_s("%s", head);
 
 	for (int i = 0; i < SUBJECTS_COUNT; i++)
 		printf_s(" %c |", 'A' + i);
 	
+	printf_s("AV MARK |");
+
 	printf_s("\n");
 
 	for(int i = 0; i < headLen; i++)
@@ -126,6 +136,8 @@ int PrintTable(studentData studentList[], int& studentCount, bool flag, char buf
 			printf_s("| ");
 		}
 
+		printf_s(" %.1lf   |", studentList[i].averageMark);
+
 		printf_s("\n");
 	}
 
@@ -154,7 +166,7 @@ void SortSurname(studentData studentList[], int studentCount)
 		for (int j = 0; j < studentCount - i - 1; j++)
 		{
 			for (int k = 0; studentList[j].surname[k] != ' '; k++)
-			{
+			{	
 				if (studentList[j].surname[k] > studentList[j + 1].surname[k])
 				{
 					swap(studentList, j, j + 1);
@@ -218,6 +230,29 @@ void SortSubject(studentData studentList[], int studentCount)
 	}
 }
 
+void SortAverageMark(studentData studentList[], int studentCount)
+{
+	bool swapped = false;
+
+	for (int i = 0; i < studentCount - 1; i++)
+	{
+		swapped = false;
+
+		for (int j = 0; j < studentCount - i - 1; j++)
+		{
+			if (studentList[j].averageMark < studentList[j + 1].averageMark)
+			{
+				swap(studentList, j, j + 1);
+				swapped = true;
+			}
+		}
+
+		if (swapped == false)
+			break;
+	}
+
+}
+
 void FindSurname(studentData studentList[], int studentCount, char buffer[])
 {
 	studentData dopStudentList[STUDENT_COUNT / 5];
@@ -266,9 +301,14 @@ int main()
 		printf_s("1 - surname\n");
 		printf_s("2 - mark\n");
 		printf_s("3 - Find surname\n");
+		printf_s("4 - Sort by average mark\n");
 		printf_s("0 - exit\n");
 		printf_s("Enter your choice: ");
 
+
+		/*
+		Вариант 1 задание 2 в ЭОС
+		*/
 		scanf_s("%d", &choice);
 
 		switch (choice)
@@ -288,6 +328,10 @@ int main()
 		case 3:
 			GetSurname(buffer);
 			FindSurname(studentList, studentCount, buffer);
+			break;
+
+		case 4:
+			SortAverageMark(studentList, studentCount);
 			break;
 
 		default:

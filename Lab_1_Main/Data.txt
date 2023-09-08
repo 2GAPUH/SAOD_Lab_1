@@ -1,6 +1,6 @@
 1 Savchenko Oleg Vadimovich 2101 5 5 5 5 5
 2 Caesar Gaius Julius 3222 4 4 4 4 4 
-3 King Augusta Ada 2142 3 3 3 3 3 
+3 King Augusta Ada 2142 3 3 3 3 1 
 4 Milligan William Stanley 1242 2 2 2 2 2
 5 Fedorov Miron Yanovich 7534 1 1 1 1 1
 6 Torvalds Linus Benedict 2341 1 2 3 4 5
